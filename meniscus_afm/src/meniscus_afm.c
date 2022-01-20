@@ -20,7 +20,7 @@
 
 
 
-#include "afm_meniscus.h"
+#include "meniscus_afm.h"
 
 
 
@@ -122,30 +122,46 @@ double locenergy(struct Lattice *lattice,
     double Et=0;
     
     
-    // Periodic boundary conditions on the x axis
-    xl =
-    xr = 
+    // Von Neumann neighborhood with periodic boundary conditions on the x-axis
     yt = y-1;
     yb = y+1;
     
+    xl = x-1;
+    xr = x+1;
+    xl = xl - (int)floor(xl/lattice->nw)*(lattice->nw);
+    xr = xr - (int)floor(xr/lattice->nw)*(lattice->nw);
     
-    // Top neigthbour
-    if(yt>=0)
+    // NOTE: Take care with the conversion between data types)!
     
-        
-    // Bottom neigthbour
-        
-        
-    // Left neigthbour
-        
-        
-    // Rigth neightbour
+    // 1. Interaction between nearest neightbours +++++++++++++++++++++++++++++++++
     
+    //   1.1 Top neigthbour
+    if(yt>=0) {
+       if(lattice->lattice[x][yt] != 2)
+           Et +=  -params->esp*lattice->lattice[x][yt]*lattice->lattice[x][y];
+    }
         
+    //   1.2 Bottom neigthbour
+    if(lattice->lattice[x][yb] != 2)
+        Et +=  -params->esp*lattice->lattice[x][yb]*lattice->lattice[x][y];
         
+    //   1.3 Left neigthbour
+    if(lattice->lattice[xl][y] != 2)
+        Et +=  -params->esp*lattice->lattice[xl][y]*lattice->lattice[x][y];    
         
+    //   1.4 Rigth neightbour
+    if(lattice->lattice[xr][y] != 2)
+        Et +=  -params->esp*lattice->lattice[xr][y]*lattice->lattice[x][y];   
     
-    // 2. Interaction with surfaces +++++++++
+    
+      // NOTE: Take care with the conversion between data types)! lattice->lattice[xr][y] is int but eps can be double
+    
+    
+    //-------------------------------------------------------------------------------
+    
+    
+    
+    // 2. Interaction with surfaces ++++++++++++++++++++++++++++++++++++++++++++++++++
     if(yt>=0) {
         if( lattice[x][yt]==2 || lattice[x][yb]==2 || lattice[xl][y]==2 || lattice[xr][y]==2)
             Et += 0.5*params->b*(lattice[x][y]);
@@ -154,12 +170,15 @@ double locenergy(struct Lattice *lattice,
         if(lattice[x][yb]==2 || lattice[xl][y]==2 || lattice[xr][y]==2)
             Et += 0.5*params->b*(lattice[x][y]);
     }
-       
+    
+    //--------------------------------------------------------------------------------
         
-        
-        
-    // 3. Chemical energy due to external source +++++++++
-    Et += (2.0*params->eps + params->mu)*(lattice->lattice[i]][j])/2.0:
+    // 3. Chemical energy due to external source ++++++++++++++++++++++++++++++++++++++
+    Et += (2.0*params->eps + params->mu)*(lattice->lattice[i]][j])/2.0;
+    
+    
+    
+    return Et;
     
 }
 
