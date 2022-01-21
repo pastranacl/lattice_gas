@@ -31,9 +31,13 @@ int main()
     // PRELIMINARY STEPS   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
     
     
-    // Generate the lattice
+    // Generate the lattice and reserce
     struct Lattice lattice;
     gen_init(&lattice, 4204.0, 1000.0, dw*20, 100*dw, dw);
+    
+    
+    double *energymcs;
+    energymcs = malloc(MAX_MCS*sizeof(int *));
     
     
     // Fill the empty space with water
@@ -43,7 +47,6 @@ int main()
                 lattice.lattice[i][j]=1;
         }
     }
-    
     
     
     // Save the initial lattice
@@ -60,6 +63,8 @@ int main()
     
     
     // Derived quantities
+    RH =
+    TEMPERATURE (ROOM TEMPERATURE)
     
     
     //--------------------------------------------------------------------------------/
@@ -89,8 +94,8 @@ int main()
         }
         
         // Calculate the total energy of the configuration
-        E=0;
-        #pragma omp parallel for atomic
+        E=0; // NOTE: I THINK THIS IS CORRECT BUT CEHCK
+        #pragma omp for reduction(+:E)
         for(int i=0; i<; i++) {
             for(int j=0; j< j++) {
                 E += locenergy(&lattice, &params, i, j);
@@ -139,8 +144,10 @@ double locenergy(struct Lattice *lattice,
                  int x, int y)
 {
     
- 
+    
     // Von Neumann neighborhood with periodic boundary conditions on the x-axis
+    
+    int xl, xr, yt, yb;
     yt = y-1;
     yb = y+1;
     
@@ -149,53 +156,44 @@ double locenergy(struct Lattice *lattice,
     xl = xl - (int)floor(xl/lattice->nw)*(lattice->nw);
     xr = xr - (int)floor(xr/lattice->nw)*(lattice->nw);
     
-    // NOTE: Take care with the conversion between data types)!
-    
     
     // 1. Interaction between nearest neightbours ++++++++++++++++++++++++++++++++/
-    double Et=0;
+    double E=0;
     
     // Top neigthbour
     if(yt>=0) {
        if(lattice->lattice[x][yt] != 2)
-           Et +=  -params->esp*lattice->lattice[x][yt]*lattice->lattice[x][y];
+           E +=  -params->esp*lattice->lattice[x][yt]*lattice->lattice[x][y];
     }
         
     // Bottom neigthbour
     if(lattice->lattice[x][yb] != 2)
-        Et +=  -params->esp*lattice->lattice[x][yb]*lattice->lattice[x][y];
+        E +=  -params->esp*lattice->lattice[x][yb]*lattice->lattice[x][y];
         
     // Left neigthbour
     if(lattice->lattice[xl][y] != 2)
-        Et +=  -params->esp*lattice->lattice[xl][y]*lattice->lattice[x][y];    
+        E +=  -params->esp*lattice->lattice[xl][y]*lattice->lattice[x][y];    
         
     // Rigth neightbour
     if(lattice->lattice[xr][y] != 2)
-        Et +=  -params->esp*lattice->lattice[xr][y]*lattice->lattice[x][y];   
-    
-    
-      // NOTE: Take care with the conversion between data types)! lattice->lattice[xr][y] is int but eps can be double
-    
-  
+        E +=  -params->esp*lattice->lattice[xr][y]*lattice->lattice[x][y];   
     
     
     // 2. Interaction with surfaces 
     if(yt>=0) {
         if( lattice[x][yt]==2 || lattice[x][yb]==2 || lattice[xl][y]==2 || lattice[xr][y]==2)
-            Et += 0.5*params->b*(lattice[x][y]);
+            E += 0.5*params->b*(lattice[x][y]);
         
     } else {
         if(lattice[x][yb]==2 || lattice[xl][y]==2 || lattice[xr][y]==2)
-            Et += 0.5*params->b*(lattice[x][y]);
+            E += 0.5*params->b*(lattice[x][y]);
     }
     
-   
-        
+    
     // 3. Chemical energy due to external source 
-    Et += (2.0*params->eps + params->mu)*(lattice->lattice[i]][j])/2.0;
+    E += (2.0*params->eps + params->mu)*(lattice->lattice[i]][j])/2.0;
     
 
-    
     
     return Et;
     

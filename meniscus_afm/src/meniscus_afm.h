@@ -23,16 +23,23 @@
 #include <stdio.h>
 #include <math.h>
 
+#define MAX_MCS  3000                // Total number of Monte-Carlo sweeps
+#define R        123                 // Ideal gas constant
+#define dw       3.24                // Distance between nodes from LJ minimum of water (A)
 
-
-#define    dw   3.24                // Distance between nodes from LJ minimum of water (A)
-
-
-#define FNAME_LATTICE_0      "initial_lattice.dat"
+#define FNAME_LATTICE_0       "initial_lattice.dat"
 #define FNAME_LATTICE_MIN     "minimised_lattice.dat"
 #define FNAME_MCSWEEPS        "energy_sweeps.dat"
 
 //git push -u origin main
+
+struct Params
+{
+  double eps;       //
+  double mu;        //
+  double b;         //
+  double beta;      // 1/kBT
+};
 
 struct Lattice
 {
@@ -42,17 +49,12 @@ struct Lattice
     int **lattice;
 };
 
-struct Params
-{
-  double eps;
-  double mu;
-  double b;
-};
 
 
 
-
-
+double locenergy(struct Lattice *lattice, 
+                 struct Params *params, 
+                 int x, int y);
 
 void gen_init(struct Lattice *lattice, 
               double w,
