@@ -28,6 +28,12 @@
 #define    dw   3.24                // Distance between nodes from LJ minimum of water (A)
 
 
+#define FNAME_LATTICE_0      "initial_lattice.dat"
+#define FNAME_LATTICE_MIN     "minimised_lattice.dat"
+#define FNAME_MCSWEEPS        "energy_sweeps.dat"
+
+//git push -u origin main
+
 struct Lattice
 {
     int nw;

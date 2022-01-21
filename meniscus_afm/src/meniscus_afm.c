@@ -26,22 +26,29 @@
 
 int main()
 {
+  
+    
+    // PRELIMINARY STEPS   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
+    
+    
     // Generate the lattice
     struct Lattice lattice;
     gen_init(&lattice, 4204.0, 1000.0, dw*20, 100*dw, dw);
     
     
-    // Fill the data with water
+    // Fill the empty space with water
     for(int i=0; i<lattice.nh; i++){
         for(int j=0; j<lattice.nw; j++){
-            if(lattice.lattice[i][j]==0)
+            if(lattice.lattice[i][j]==2)
                 lattice.lattice[i][j]=1;
         }
     }
     
+    
+    
     // Save the initial lattice
     FILE *fid_lattice;
-    fid_lattice = fopen("initial_lattice.dat", "w");
+    fid_lattice = fopen(FNAME_LATTICE_0, "w");
     
     for(int i=0; i<lattice.nh; i++){
         for(int j=0; j<lattice.nw; j++){
@@ -52,60 +59,74 @@ int main()
     fclose(fid_lattice);
     
     
-    // MAIN MONTE CARLO ROUTINE ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // Derived quantities
+    
+    
+    //--------------------------------------------------------------------------------/
+    
+    
+    
+    
+    // MAIN MONTE CARLO ROUTINE   ++++++++++++++++++++++++++++++++++++++++++++++++++++/
     double E0, E;
-    for(int mcs=0; mcs<MAX_MCS; mcs++){
+    for(int mcs=0; mcs<MAX_MCS; mcs++)
+    {
         
         for(int i=0; i<lattice.nh; i++){ 
-            for(int j=0; j<lattice.nw; j++){
-                    
+            for(int j=0; j<lattice.nw; j++)
+            {
                     if(j==2) { // Exclude the surfaces
                         continue;
                     } else {
                         
-                        
                         E0 = energy(&lattice, &params, i, j);
                         lattice.lattice[i][j] *= -1;
                         E = energy(&lattice, &params, i, j);
-                        
-                        
-                        //
-                        if( exp((E-E0)*beta)< rand())
+                    
+                        if( exp((E-E0)*params.beta)< rand())
                             lattice.lattice[i][j] *= -1;
-                        
                     }
-                    
-                    
-                    
-                    
-                    
             }
         }
         
-        // Calculate the energy
-        double Et=0;
+        // Calculate the total energy of the configuration
+        E=0;
         #pragma omp parallel for atomic
         for(int i=0; i<; i++) {
             for(int j=0; j< j++) {
-                Et += locenergy(&lattice, &params, i, j);
+                E += locenergy(&lattice, &params, i, j);
             }
         }
-        
+        energymcs[mcs] = E;
         
     }
     
-    //--------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------/
     
     
-    
+    // SAVE DATA   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
     // Save final configuration
-    
+    fid_energymc = fopen(FNAME_MCSWEEPS, "w");
+    for(int mcs=0; mcs<MAX_MCS; mcs++){
+        fprintf(fid_energymc,"%d\t%f\n", mcs, energymcs[mcs]);
+    }
+    fclose(fid_energymc);
     
     
    // Save energy configuration
+    fid_lattice = fopen(FNAME_LATTICE_MIN, "w");
+    for(int i=0; i<lattice.nh; i++){
+        for(int j=0; j<lattice.nw; j++){
+            fprintf(fid_lattice,"%d\t", lattice.lattice[i][j]);
+        }
+        fprintf(fid_lattice,"\n");
+    }
+    fclose(fid_lattice);
    
-   
-   
+   //--------------------------------------------------------------------------------/
+    
+    
+    
    
     return 0;
 }
@@ -119,9 +140,7 @@ double locenergy(struct Lattice *lattice,
                  int x, int y)
 {
     
-    double Et=0;
-    
-    
+ 
     // Von Neumann neighborhood with periodic boundary conditions on the x-axis
     yt = y-1;
     yb = y+1;
@@ -133,35 +152,35 @@ double locenergy(struct Lattice *lattice,
     
     // NOTE: Take care with the conversion between data types)!
     
-    // 1. Interaction between nearest neightbours +++++++++++++++++++++++++++++++++
     
-    //   1.1 Top neigthbour
+    // 1. Interaction between nearest neightbours ++++++++++++++++++++++++++++++++/
+    double Et=0;
+    
+    // Top neigthbour
     if(yt>=0) {
        if(lattice->lattice[x][yt] != 2)
            Et +=  -params->esp*lattice->lattice[x][yt]*lattice->lattice[x][y];
     }
         
-    //   1.2 Bottom neigthbour
+    // Bottom neigthbour
     if(lattice->lattice[x][yb] != 2)
         Et +=  -params->esp*lattice->lattice[x][yb]*lattice->lattice[x][y];
         
-    //   1.3 Left neigthbour
+    // Left neigthbour
     if(lattice->lattice[xl][y] != 2)
         Et +=  -params->esp*lattice->lattice[xl][y]*lattice->lattice[x][y];    
         
-    //   1.4 Rigth neightbour
+    // Rigth neightbour
     if(lattice->lattice[xr][y] != 2)
         Et +=  -params->esp*lattice->lattice[xr][y]*lattice->lattice[x][y];   
     
     
       // NOTE: Take care with the conversion between data types)! lattice->lattice[xr][y] is int but eps can be double
     
-    
-    //-------------------------------------------------------------------------------
-    
+  
     
     
-    // 2. Interaction with surfaces ++++++++++++++++++++++++++++++++++++++++++++++++++
+    // 2. Interaction with surfaces 
     if(yt>=0) {
         if( lattice[x][yt]==2 || lattice[x][yb]==2 || lattice[xl][y]==2 || lattice[xr][y]==2)
             Et += 0.5*params->b*(lattice[x][y]);
@@ -171,11 +190,12 @@ double locenergy(struct Lattice *lattice,
             Et += 0.5*params->b*(lattice[x][y]);
     }
     
-    //--------------------------------------------------------------------------------
+   
         
-    // 3. Chemical energy due to external source ++++++++++++++++++++++++++++++++++++++
+    // 3. Chemical energy due to external source 
     Et += (2.0*params->eps + params->mu)*(lattice->lattice[i]][j])/2.0;
     
+
     
     
     return Et;
