@@ -71,7 +71,6 @@ int main()
     double E0, E;
     for(int mcs=0; mcs<MAX_MCS; mcs++)
     {
-        
         for(int i=0; i<lattice.nh; i++){ 
             for(int j=0; j<lattice.nw; j++)
             {
@@ -105,14 +104,14 @@ int main()
     
     
     // SAVE DATA   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
+    
     // Save final configuration
     fid_energymc = fopen(FNAME_MCSWEEPS, "w");
     for(int mcs=0; mcs<MAX_MCS; mcs++){
         fprintf(fid_energymc,"%d\t%f\n", mcs, energymcs[mcs]);
     }
     fclose(fid_energymc);
-    
-    
+
    // Save energy configuration
     fid_lattice = fopen(FNAME_LATTICE_MIN, "w");
     for(int i=0; i<lattice.nh; i++){
