@@ -78,8 +78,8 @@ int main()
     energymcs = malloc(MAX_MCS*sizeof(int *));
     
     #pragma omp for reduction(+:E)
-    for(int i=0; i<; i++) {
-        for(int j=0; j< j++) 
+    for(int i=0; i<lattice.nh; i++) {
+        for(int j=0; j<lattice.nw; j++) 
             E += locenergy(&lattice, &params, i, j);
     }
     energymcs[0] = E;
@@ -94,9 +94,9 @@ int main()
                         continue;
                     } else {
                         
-                        E0 = energy(&lattice, &params, i, j);
+                        E0 = locenergy(&lattice, &params, i, j);
                         lattice.lattice[i][j] *= -1;
-                        E = energy(&lattice, &params, i, j);
+                        E = locenergy(&lattice, &params, i, j);
                     
                         if( exp((E-E0)*params.beta)< rand())
                             lattice.lattice[i][j] *= -1;
@@ -107,8 +107,8 @@ int main()
         // Calculate the total energy of the configuration
         E=0;
         #pragma omp for reduction(+:E)
-        for(int i=0; i<; i++) {
-            for(int j=0; j< j++)
+        for(int i=0; i<lattice.nh; i++) {
+            for(int j=0; j<lattice.nw; j++)
                 E += locenergy(&lattice, &params, i, j);
         }
         energymcs[mcs] = E;
@@ -121,13 +121,14 @@ int main()
     // SAVE DATA   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
     
     // Save final configuration
+    FILE *fid_energymc;
     fid_energymc = fopen(FNAME_MCSWEEPS, "w");
     for(int mcs=0; mcs<MAX_MCS; mcs++){
         fprintf(fid_energymc,"%d\t%f\n", mcs, energymcs[mcs]);
     }
     fclose(fid_energymc);
 
-   // Save energy configuration
+    // Save energy configuration
     fid_lattice = fopen(FNAME_LATTICE_MIN, "w");
     for(int i=0; i<lattice.nh; i++){
         for(int j=0; j<lattice.nw; j++){
@@ -173,39 +174,39 @@ double locenergy(struct Lattice *lattice,
     // Top neigthbour
     if(yt>=0) {
        if(lattice->lattice[x][yt] != 2)
-           E +=  -params->esp*lattice->lattice[x][yt]*lattice->lattice[x][y];
+           E +=  -params->eps*lattice->lattice[x][yt]*lattice->lattice[x][y];
     }
         
     // Bottom neigthbour
     if(lattice->lattice[x][yb] != 2)
-        E +=  -params->esp*lattice->lattice[x][yb]*lattice->lattice[x][y];
+        E +=  -params->eps*lattice->lattice[x][yb]*lattice->lattice[x][y];
         
     // Left neigthbour
     if(lattice->lattice[xl][y] != 2)
-        E +=  -params->esp*lattice->lattice[xl][y]*lattice->lattice[x][y];    
+        E +=  -params->eps*lattice->lattice[xl][y]*lattice->lattice[x][y];    
         
     // Rigth neightbour
     if(lattice->lattice[xr][y] != 2)
-        E +=  -params->esp*lattice->lattice[xr][y]*lattice->lattice[x][y];   
+        E +=  -params->eps*lattice->lattice[xr][y]*lattice->lattice[x][y];   
     
     
     // 2. Interaction with surfaces 
     if(yt>=0) {
-        if( lattice[x][yt]==2 || lattice[x][yb]==2 || lattice[xl][y]==2 || lattice[xr][y]==2)
-            E += 0.5*params->bsurf*(lattice[x][y]);
+        if( lattice->lattice[x][yt]==2 || lattice->lattice[x][yb]==2 || lattice->lattice[xl][y]==2 || lattice->lattice[xr][y]==2)
+            E += 0.5*params->bsurf*(lattice->lattice[x][y]);
         
     } else {
-        if(lattice[x][yb]==2 || lattice[xl][y]==2 || lattice[xr][y]==2)
-            E += 0.5*params->bsurf*(lattice[x][y]);
+        if(lattice->lattice[x][yb]==2 || lattice->lattice[xl][y]==2 || lattice->lattice[xr][y]==2)
+            E += 0.5*params->bsurf*(lattice->lattice[x][y]);
     }
     
     
     // 3. Chemical energy due to external source 
-    E += (2.0*params->eps + params->mu)*(lattice->lattice[i]][j])/2.0;
+    E += (2.0*params->eps + params->mu)*(lattice->lattice[x][y])/2.0;
     
 
     
-    return Et;
+    return E;
     
 }
 

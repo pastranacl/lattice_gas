@@ -53,7 +53,7 @@ struct Params
 {
   double eps;       //
   double mu;        //
-  double mu_c       //
+  double mu_c;       //
   double bsurf;      //
   double beta;      // 1/kBT
 };
