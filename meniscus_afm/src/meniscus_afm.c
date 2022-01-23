@@ -31,13 +31,10 @@ int main()
     // PRELIMINARY STEPS   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
     
     
-    // Generate the lattice and reserce
+    // Generate the lattice and memory allocation
     struct Lattice lattice;
-    gen_init(&lattice, 4204.0, 1000.0, dw*20, 100*dw, dw);
-    
-    
-    double *energymcs;
-    energymcs = malloc(MAX_MCS*sizeof(int *));
+    gen_init(&lattice, WIDTH, HEIGHT, SURFACE_THICKNESS, AFM_TIP_RADIUS, AFM_TIP_HEIGTH);
+    //gen_init(&lattice, 4204.0, 1000.0, dw*20, 100*dw, dw);
     
     
     // Fill the empty space with water
@@ -47,7 +44,6 @@ int main()
                 lattice.lattice[i][j]=1;
         }
     }
-    
     
     // Save the initial lattice
     FILE *fid_lattice;
@@ -63,10 +59,12 @@ int main()
     
     
     // Derived quantities
-    RH =
-    TEMPERATURE (ROOM TEMPERATURE)
-    
-    
+    struct Params params;
+    params.eps = EPS;       
+    params.mu = MU_C + BETA*log(RH);       
+    params.bsurf = BSURF;
+    params.beta = BETA;      
+  
     //--------------------------------------------------------------------------------/
     
     
@@ -74,7 +72,20 @@ int main()
     
     // MAIN MONTE CARLO ROUTINE   ++++++++++++++++++++++++++++++++++++++++++++++++++++/
     double E0, E;
-    for(int mcs=0; mcs<MAX_MCS; mcs++)
+    double *energymcs;
+    
+    E=0;
+    energymcs = malloc(MAX_MCS*sizeof(int *));
+    
+    #pragma omp for reduction(+:E)
+    for(int i=0; i<; i++) {
+        for(int j=0; j< j++) 
+            E += locenergy(&lattice, &params, i, j);
+    }
+    energymcs[0] = E;
+    
+    
+    for(int mcs=1; mcs<MAX_MCS; mcs++)
     {
         for(int i=0; i<lattice.nh; i++){ 
             for(int j=0; j<lattice.nw; j++)
@@ -94,12 +105,11 @@ int main()
         }
         
         // Calculate the total energy of the configuration
-        E=0; // NOTE: I THINK THIS IS CORRECT BUT CEHCK
+        E=0;
         #pragma omp for reduction(+:E)
         for(int i=0; i<; i++) {
-            for(int j=0; j< j++) {
+            for(int j=0; j< j++)
                 E += locenergy(&lattice, &params, i, j);
-            }
         }
         energymcs[mcs] = E;
         
@@ -182,11 +192,11 @@ double locenergy(struct Lattice *lattice,
     // 2. Interaction with surfaces 
     if(yt>=0) {
         if( lattice[x][yt]==2 || lattice[x][yb]==2 || lattice[xl][y]==2 || lattice[xr][y]==2)
-            E += 0.5*params->b*(lattice[x][y]);
+            E += 0.5*params->bsurf*(lattice[x][y]);
         
     } else {
         if(lattice[x][yb]==2 || lattice[xl][y]==2 || lattice[xr][y]==2)
-            E += 0.5*params->b*(lattice[x][y]);
+            E += 0.5*params->bsurf*(lattice[x][y]);
     }
     
     
