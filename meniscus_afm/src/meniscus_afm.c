@@ -40,7 +40,7 @@ int main()
     // Fill the empty space with water
     for(int i=0; i<lattice.nh; i++){
         for(int j=0; j<lattice.nw; j++){
-            if(lattice.lattice[i][j]==2)
+            if(lattice.lattice[i][j]!=2)
                 lattice.lattice[i][j]=1;
         }
     }
@@ -76,23 +76,23 @@ int main()
     
     E=0;
     energymcs = malloc(MAX_MCS*sizeof(int *));
-    
+    printf("Calc\n");
     #pragma omp for reduction(+:E)
     for(int i=0; i<lattice.nh; i++) {
-        for(int j=0; j<lattice.nw; j++) 
-            E += locenergy(&lattice, &params, i, j);
+        for(int j=0; j<lattice.nw; j++) {
+            if(lattice.lattice[i][j] != 2)
+                E += locenergy(&lattice, &params, i, j);
+        }
     }
     energymcs[0] = E;
     
-    
+    printf("Enter in msc\n");
     for(int mcs=1; mcs<MAX_MCS; mcs++)
     {
         for(int i=0; i<lattice.nh; i++){ 
             for(int j=0; j<lattice.nw; j++)
             {
-                    if(j==2) { // Exclude the surfaces
-                        continue;
-                    } else {
+                    if(lattice.lattice[i][j]!=2) { // Exclude the surfaces
                         
                         E0 = locenergy(&lattice, &params, i, j);
                         lattice.lattice[i][j] *= -1;
@@ -108,8 +108,10 @@ int main()
         E=0;
         #pragma omp for reduction(+:E)
         for(int i=0; i<lattice.nh; i++) {
-            for(int j=0; j<lattice.nw; j++)
-                E += locenergy(&lattice, &params, i, j);
+            for(int j=0; j<lattice.nw; j++) {
+                if(lattice.lattice[i][j] != 2)
+                    E += locenergy(&lattice, &params, i, j);
+            }
         }
         energymcs[mcs] = E;
         
@@ -152,7 +154,7 @@ int main()
 /*************************************************************/
 double locenergy(struct Lattice *lattice, 
                  struct Params *params, 
-                 int x, int y)
+                 int y, int x)
 {
     
     
@@ -164,45 +166,45 @@ double locenergy(struct Lattice *lattice,
     
     xl = x-1;
     xr = x+1;
-    xl = xl - (int)floor(xl/lattice->nw)*(lattice->nw);
-    xr = xr - (int)floor(xr/lattice->nw)*(lattice->nw);
+    xl = xl - (int)floor((double)xl/lattice->nw)*(lattice->nw);
+    xr = xr - (int)floor((double)xr/lattice->nw)*(lattice->nw);
     
-    
+   
     // 1. Interaction between nearest neightbours ++++++++++++++++++++++++++++++++/
     double E=0;
     
     // Top neigthbour
     if(yt>=0) {
-       if(lattice->lattice[x][yt] != 2)
-           E +=  -params->eps*lattice->lattice[x][yt]*lattice->lattice[x][y];
+       if(lattice->lattice[yt][x] != 2)
+           E +=  -params->eps*lattice->lattice[yt][x]*lattice->lattice[y][x];
     }
         
     // Bottom neigthbour
-    if(lattice->lattice[x][yb] != 2)
-        E +=  -params->eps*lattice->lattice[x][yb]*lattice->lattice[x][y];
+    if(lattice->lattice[yb][x] != 2)
+        E +=  -params->eps*lattice->lattice[yb][x]*lattice->lattice[y][x];
         
     // Left neigthbour
-    if(lattice->lattice[xl][y] != 2)
-        E +=  -params->eps*lattice->lattice[xl][y]*lattice->lattice[x][y];    
+    if(lattice->lattice[y][xl] != 2)
+        E +=  -params->eps*lattice->lattice[y][xl]*lattice->lattice[y][x];    
         
     // Rigth neightbour
-    if(lattice->lattice[xr][y] != 2)
-        E +=  -params->eps*lattice->lattice[xr][y]*lattice->lattice[x][y];   
+    if(lattice->lattice[y][xr] != 2)
+        E +=  -params->eps*lattice->lattice[y][xr]*lattice->lattice[y][x];   
     
     
     // 2. Interaction with surfaces 
     if(yt>=0) {
-        if( lattice->lattice[x][yt]==2 || lattice->lattice[x][yb]==2 || lattice->lattice[xl][y]==2 || lattice->lattice[xr][y]==2)
-            E += 0.5*params->bsurf*(lattice->lattice[x][y]);
+        if( lattice->lattice[yt][x]==2 || lattice->lattice[yb][x]==2 || lattice->lattice[y][xl]==2 || lattice->lattice[y][xr]==2)
+            E += 0.5*params->bsurf*(lattice->lattice[y][x]);
         
     } else {
-        if(lattice->lattice[x][yb]==2 || lattice->lattice[xl][y]==2 || lattice->lattice[xr][y]==2)
-            E += 0.5*params->bsurf*(lattice->lattice[x][y]);
+        if(lattice->lattice[yb][x]==2 || lattice->lattice[y][xl]==2 || lattice->lattice[y][xr]==2)
+            E += 0.5*params->bsurf*(lattice->lattice[y][x]);
     }
     
     
     // 3. Chemical energy due to external source 
-    E += (2.0*params->eps + params->mu)*(lattice->lattice[x][y])/2.0;
+    E += (2.0*params->eps + params->mu)*(lattice->lattice[y][x])/2.0;
     
 
     
