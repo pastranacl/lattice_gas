@@ -18,10 +18,8 @@
     
 ****************************************************************************/
 
-
-
 #include "meniscus_afm.h"
-
+#include "rands.h"
 
 
 int main()
@@ -60,7 +58,7 @@ int main()
     
     // Derived quantities
     struct Params params;
-    params.eps = EPS;       
+    params.eps = EPSNN;       
     params.mu = MU_C + BETA*log(RH);       
     params.bsurf = BSURF;
     params.beta = BETA;      
@@ -71,12 +69,16 @@ int main()
     
     
     // MAIN MONTE CARLO ROUTINE   ++++++++++++++++++++++++++++++++++++++++++++++++++++/
+    long *idum, foornd = -time(NULL);   /* Varibles for randm number generator */   
+    
+    
     double E0, E;
     double *energymcs;
     
+    idum = &foornd;
     E=0;
     energymcs = malloc(MAX_MCS*sizeof(int *));
-    printf("Calc\n");
+
     #pragma omp for reduction(+:E)
     for(int i=0; i<lattice.nh; i++) {
         for(int j=0; j<lattice.nw; j++) {
@@ -86,7 +88,6 @@ int main()
     }
     energymcs[0] = E;
     
-    printf("Enter in msc\n");
     for(int mcs=1; mcs<MAX_MCS; mcs++)
     {
         for(int i=0; i<lattice.nh; i++){ 
@@ -95,10 +96,11 @@ int main()
                     if(lattice.lattice[i][j]!=2) { // Exclude the surfaces
                         
                         E0 = locenergy(&lattice, &params, i, j);
+
                         lattice.lattice[i][j] *= -1;
                         E = locenergy(&lattice, &params, i, j);
-                    
-                        if( exp((E-E0)*params.beta)< rand())
+   
+                        if(ran1(idum) > exp(-(E-E0)*params.beta) )
                             lattice.lattice[i][j] *= -1;
                     }
             }
@@ -144,7 +146,9 @@ int main()
     
     
     
-   
+   //Liberar memoria!!
+    
+    
     return 0;
 }
 
@@ -176,30 +180,30 @@ double locenergy(struct Lattice *lattice,
     // Top neigthbour
     if(yt>=0) {
        if(lattice->lattice[yt][x] != 2)
-           E +=  -params->eps*lattice->lattice[yt][x]*lattice->lattice[y][x];
+           E -= params->eps*lattice->lattice[yt][x]*lattice->lattice[y][x]/4.0;
     }
         
     // Bottom neigthbour
     if(lattice->lattice[yb][x] != 2)
-        E +=  -params->eps*lattice->lattice[yb][x]*lattice->lattice[y][x];
+        E -= params->eps*lattice->lattice[yb][x]*lattice->lattice[y][x]/4.0;
         
     // Left neigthbour
     if(lattice->lattice[y][xl] != 2)
-        E +=  -params->eps*lattice->lattice[y][xl]*lattice->lattice[y][x];    
+        E -= params->eps*lattice->lattice[y][xl]*lattice->lattice[y][x]/4.0;    
         
     // Rigth neightbour
     if(lattice->lattice[y][xr] != 2)
-        E +=  -params->eps*lattice->lattice[y][xr]*lattice->lattice[y][x];   
+        E -=  params->eps*lattice->lattice[y][xr]*lattice->lattice[y][x]/4.0;   
     
     
     // 2. Interaction with surfaces 
     if(yt>=0) {
         if( lattice->lattice[yt][x]==2 || lattice->lattice[yb][x]==2 || lattice->lattice[y][xl]==2 || lattice->lattice[y][xr]==2)
-            E += 0.5*params->bsurf*(lattice->lattice[y][x]);
+            E -= params->bsurf*(lattice->lattice[y][x])/2.0;
         
     } else {
         if(lattice->lattice[yb][x]==2 || lattice->lattice[y][xl]==2 || lattice->lattice[y][xr]==2)
-            E += 0.5*params->bsurf*(lattice->lattice[y][x]);
+            E -= params->bsurf*(lattice->lattice[y][x])/2.0;
     }
     
     
