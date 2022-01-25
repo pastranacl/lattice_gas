@@ -43,6 +43,18 @@ int main()
         }
     }
     
+    // Allocate memmory for the mean lattice
+    int **mean_lattice;
+    mean_lattice = malloc((lattice.nh)*sizeof(int *));
+    for(int i=0;i<(lattice.nh); i++)
+        mean_lattice[i] = malloc(lattice.nw*sizeof(int));
+    
+    for(int i=0;i<lattice.nh; i++) {
+        for(int j=0; j<lattice.nw; j++)
+            mean_lattice[i][j]=0;
+    }
+    
+    
     // Save the initial lattice
     FILE *fid_lattice;
     fid_lattice = fopen(FNAME_LATTICE_0, "w");
@@ -59,7 +71,7 @@ int main()
     // Derived quantities
     struct Params params;
     params.eps = EPSNN;       
-    params.mu = MU_C + BETA*log(RH);       
+    params.mu = MU_C + BETA*log(RH/100.0);       
     params.bsurf = BSURF;
     params.beta = BETA;      
   
@@ -88,6 +100,7 @@ int main()
     }
     energymcs[0] = E;
     
+    
     for(int mcs=1; mcs<MAX_MCS; mcs++)
     {
         for(int i=0; i<lattice.nh; i++){ 
@@ -106,11 +119,17 @@ int main()
             }
         }
         
-        // Calculate the total energy of the configuration
+        
         E=0;
         #pragma omp for reduction(+:E)
         for(int i=0; i<lattice.nh; i++) {
             for(int j=0; j<lattice.nw; j++) {
+                
+                // Obtain average after minimisation
+                if(mcs>EQ_MCS)
+                    mean_lattice[i][j] += lattice.lattice[i][j];
+                
+                // Calculate the total energy of the configuration
                 if(lattice.lattice[i][j] != 2)
                     E += locenergy(&lattice, &params, i, j);
             }
@@ -132,6 +151,29 @@ int main()
     }
     fclose(fid_energymc);
 
+    
+    // Save mean configuration
+    FILE *fid_mean_lattice;
+    fid_mean_lattice = fopen(FNAME_MEAN_LATTICE, "w");
+    for(int i=0; i<lattice.nh; i++){
+        for(int j=0; j<lattice.nw; j++){
+            
+            int spin=0;
+            if(lattice.lattice[i][j]==2) {
+                spin=2;
+            } else {
+                    if((double)mean_lattice[i][j]/(MAX_MCS-EQ_MCS)>0.01 )
+                        spin=1;
+                    else
+                        spin=0;
+            }
+           fprintf(fid_lattice,"%d\t", spin);
+        }
+        fprintf(fid_mean_lattice,"\n");
+    }
+    fclose(fid_mean_lattice);
+    
+    
     // Save energy configuration
     fid_lattice = fopen(FNAME_LATTICE_MIN, "w");
     for(int i=0; i<lattice.nh; i++){
