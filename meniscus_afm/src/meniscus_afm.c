@@ -2,17 +2,16 @@
     
     Simulation of the hydration layer of an AFM tip
     Copyright (C) 2022  Cesar Lopez Pastrana
-
+    
+    
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
     
@@ -24,27 +23,38 @@
 
 int main()
 {
-  
+    double E0, E;
+    long *idum; 
+    long foornd; 
+    int **mean_lattice;
+    double *energymcs;
+    
+    FILE *fid_lattice;
+    FILE *fid_energymc;
+    
+    foornd = -time(NULL);
+    idum = &foornd;
     
     // PRELIMINARY STEPS   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
-    
     
     // Generate the lattice and memory allocation
     struct Lattice lattice;
     gen_init(&lattice, WIDTH, HEIGHT, SURFACE_THICKNESS, AFM_TIP_RADIUS, AFM_TIP_HEIGTH);
-    //gen_init(&lattice, 4204.0, 1000.0, dw*20, 100*dw, dw);
     
     
-    // Fill the empty space with water
+    // Fill the empty space randomly
     for(int i=0; i<lattice.nh; i++){
         for(int j=0; j<lattice.nw; j++){
-            if(lattice.lattice[i][j]!=2)
-                lattice.lattice[i][j]=1;
+            if(lattice.lattice[i][j]!=2){
+                if(ran1(idum)>0.5)
+                    lattice.lattice[i][j] = 1;
+                else
+                    lattice.lattice[i][j] = -1;
+            }
         }
     }
     
     // Allocate memmory for the mean lattice
-    int **mean_lattice;
     mean_lattice = malloc((lattice.nh)*sizeof(int *));
     for(int i=0;i<(lattice.nh); i++)
         mean_lattice[i] = malloc(lattice.nw*sizeof(int));
@@ -56,9 +66,7 @@ int main()
     
     
     // Save the initial lattice
-    FILE *fid_lattice;
     fid_lattice = fopen(FNAME_LATTICE_0, "w");
-    
     for(int i=0; i<lattice.nh; i++){
         for(int j=0; j<lattice.nw; j++){
             fprintf(fid_lattice,"%d\t", lattice.lattice[i][j]);
@@ -71,7 +79,7 @@ int main()
     // Derived quantities
     struct Params params;
     params.eps = EPSNN;       
-    params.mu = MU_C + BETA*log(RH/100.0);       
+    params.mu = MU;       
     params.bsurf = BSURF;
     params.beta = BETA;      
   
@@ -81,17 +89,9 @@ int main()
     
     
     // MAIN MONTE CARLO ROUTINE   ++++++++++++++++++++++++++++++++++++++++++++++++++++/
-    long *idum, foornd = -time(NULL);   /* Varibles for randm number generator */   
-    
-    
-    double E0, E;
-    double *energymcs;
-    
-    idum = &foornd;
     E=0;
     energymcs = malloc(MAX_MCS*sizeof(int *));
 
-    #pragma omp for reduction(+:E)
     for(int i=0; i<lattice.nh; i++) {
         for(int j=0; j<lattice.nw; j++) {
             if(lattice.lattice[i][j] != 2)
@@ -106,26 +106,28 @@ int main()
         for(int i=0; i<lattice.nh; i++){ 
             for(int j=0; j<lattice.nw; j++)
             {
-                    if(lattice.lattice[i][j]!=2) { // Exclude the surfaces
+                    int x,y;
+                    x = (int)(lattice.nh-1)*ran1(idum);
+                    y = (int)(lattice.nw-1)*ran1(idum);
+                    if(lattice.lattice[x][y]!=2) { // Exclude the surfaces
                         
-                        E0 = locenergy(&lattice, &params, i, j);
-
-                        lattice.lattice[i][j] *= -1;
-                        E = locenergy(&lattice, &params, i, j);
+                        E0 = locenergy(&lattice, &params, x, y);
+                        lattice.lattice[x][y] *= -1;
+                        E = locenergy(&lattice, &params, x, y);
    
                         if(ran1(idum) > exp(-(E-E0)*params.beta) )
-                            lattice.lattice[i][j] *= -1;
+                            lattice.lattice[x][y] *= -1;
                     }
             }
         }
         
         
         E=0;
-        #pragma omp for reduction(+:E)
         for(int i=0; i<lattice.nh; i++) {
             for(int j=0; j<lattice.nw; j++) {
                 
                 // Obtain average after minimisation
+                // TODO: THIS HAS TO BE CHANGED FOR THE RANGE 0 AND 1
                 if(mcs>EQ_MCS)
                     mean_lattice[i][j] += lattice.lattice[i][j];
                 
@@ -144,7 +146,6 @@ int main()
     // SAVE DATA   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
     
     // Save final configuration
-    FILE *fid_energymc;
     fid_energymc = fopen(FNAME_MCSWEEPS, "w");
     for(int mcs=0; mcs<MAX_MCS; mcs++){
         fprintf(fid_energymc,"%d\t%f\n", mcs, energymcs[mcs]);
@@ -152,29 +153,8 @@ int main()
     fclose(fid_energymc);
 
     
-    // Save mean configuration
-    FILE *fid_mean_lattice;
-    fid_mean_lattice = fopen(FNAME_MEAN_LATTICE, "w");
-    for(int i=0; i<lattice.nh; i++){
-        for(int j=0; j<lattice.nw; j++){
-            
-            int spin=0;
-            if(lattice.lattice[i][j]==2) {
-                spin=2;
-            } else {
-                    if((double)mean_lattice[i][j]/(MAX_MCS-EQ_MCS)>0.01 )
-                        spin=1;
-                    else
-                        spin=0;
-            }
-           fprintf(fid_lattice,"%d\t", spin);
-        }
-        fprintf(fid_mean_lattice,"\n");
-    }
-    fclose(fid_mean_lattice);
     
-    
-    // Save energy configuration
+    // Save minimal energy configuraion configuration
     fid_lattice = fopen(FNAME_LATTICE_MIN, "w");
     for(int i=0; i<lattice.nh; i++){
         for(int j=0; j<lattice.nw; j++){
@@ -188,7 +168,7 @@ int main()
     
     
     
-   //Liberar memoria!!
+   //TODO: Liberar memoria!!
     
     
     return 0;
@@ -203,57 +183,54 @@ double locenergy(struct Lattice *lattice,
                  int y, int x)
 {
     
+    double E;
+    int xl, xr, yt, yb;
     
     // Von Neumann neighborhood with periodic boundary conditions on the x-axis
-    
-    int xl, xr, yt, yb;
     yt = y-1;
     yb = y+1;
-    
     xl = x-1;
     xr = x+1;
+    
     xl = xl - (int)floor((double)xl/lattice->nw)*(lattice->nw);
     xr = xr - (int)floor((double)xr/lattice->nw)*(lattice->nw);
     
-   
-    // 1. Interaction between nearest neightbours ++++++++++++++++++++++++++++++++/
-    double E=0;
+    
+    //TODO: SEEMSTO BE AN ERROR WITH THE BOUNDARY CONDITION PERIODIC ON THE RIGTH SIDE
+    
     
     // Top neigthbour
+    E=0;
     if(yt>=0) {
        if(lattice->lattice[yt][x] != 2)
-           E -= params->eps*lattice->lattice[yt][x]*lattice->lattice[y][x]/4.0;
+           E += -params->eps*lattice->lattice[yt][x]*lattice->lattice[y][x]/4.0;
+       else
+            E += -params->bsurf*(1.0-lattice->lattice[y][x])/2.0;
     }
         
     // Bottom neigthbour
-    if(lattice->lattice[yb][x] != 2)
-        E -= params->eps*lattice->lattice[yb][x]*lattice->lattice[y][x]/4.0;
+    if(lattice->lattice[yb][x] != 2 && yb<lattice->nw-1)
+        E += -params->eps*lattice->lattice[yb][x]*lattice->lattice[y][x]/4.0;
+    else
+        E += -params->bsurf*(1.0-lattice->lattice[y][x])/2.0;
         
     // Left neigthbour
     if(lattice->lattice[y][xl] != 2)
-        E -= params->eps*lattice->lattice[y][xl]*lattice->lattice[y][x]/4.0;    
+        E += -params->eps*lattice->lattice[y][xl]*lattice->lattice[y][x]/4.0;    
+    else
+        E += -params->bsurf*(1.0-lattice->lattice[y][x])/2.0;
         
     // Rigth neightbour
     if(lattice->lattice[y][xr] != 2)
-        E -=  params->eps*lattice->lattice[y][xr]*lattice->lattice[y][x]/4.0;   
+        E += -params->eps*lattice->lattice[y][xr]*lattice->lattice[y][x]/4.0;   
+    else
+        E += -params->bsurf*(1.0-lattice->lattice[y][x])/2.0;
+
     
-    
-    // 2. Interaction with surfaces 
-    if(yt>=0) {
-        if( lattice->lattice[yt][x]==2 || lattice->lattice[yb][x]==2 || lattice->lattice[y][xl]==2 || lattice->lattice[y][xr]==2)
-            E -= params->bsurf*(lattice->lattice[y][x])/2.0;
-        
-    } else {
-        if(lattice->lattice[yb][x]==2 || lattice->lattice[y][xl]==2 || lattice->lattice[y][xr]==2)
-            E -= params->bsurf*(lattice->lattice[y][x])/2.0;
-    }
-    
-    
-    // 3. Chemical energy due to external source 
+    // 2.- Chemical potential
     E += (2.0*params->eps + params->mu)*(lattice->lattice[y][x])/2.0;
     
 
-    
     return E;
     
 }
@@ -289,7 +266,7 @@ void gen_init(struct Lattice *lattice,
     
     for(int i=0;i<(lattice->nh); i++){
         for(int j=0;j<(lattice->nw); j++){
-             lattice->lattice[i][j] = 0;
+             lattice->lattice[i][j] = 1;
         }
     }
     
@@ -305,7 +282,7 @@ void gen_init(struct Lattice *lattice,
       
     // 2. Draw the AFM tip
     int x, y, y_parabola;
-    int x0 = (int)ceil(lattice->nw/2.0);
+    int x0 = (int)round(lattice->nw/2.0);
     
     for(int i=0; i<ns; i++){
         for(int j=0;j<(lattice->nw); j++){
@@ -316,5 +293,8 @@ void gen_init(struct Lattice *lattice,
                 lattice->lattice[i][j] = 2;
         }
     }
-    
 }
+
+
+
+// TODO: ALLOCATE AND DEALLOCATE FUNCTIONS
