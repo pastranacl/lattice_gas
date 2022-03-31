@@ -107,8 +107,8 @@ int main()
             for(int j=0; j<lattice.nw; j++)
             {
                     int x,y;
-                    x = (int)(lattice.nh-1)*ran1(idum);
-                    y = (int)(lattice.nw-1)*ran1(idum);
+                    x = (int)(lattice.nh)*ran1(idum);
+                    y = (int)(lattice.nw)*ran1(idum);
                     if(lattice.lattice[x][y]!=2) { // Exclude the surfaces
                         
                         E0 = locenergy(&lattice, &params, x, y);
@@ -194,9 +194,6 @@ double locenergy(struct Lattice *lattice,
     
     xl = xl - (int)floor((double)xl/lattice->nw)*(lattice->nw);
     xr = xr - (int)floor((double)xr/lattice->nw)*(lattice->nw);
-    
-    
-    //TODO: SEEMSTO BE AN ERROR WITH THE BOUNDARY CONDITION PERIODIC ON THE RIGTH SIDE
     
     
     // Top neigthbour
