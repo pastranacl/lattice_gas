@@ -23,31 +23,31 @@
 
 //git push -u origin main
 
-#define MAX_MCS           3000          // Total number of Monte-Carlo sweeps
+#define MAX_MCS           5000          // Total number of Monte-Carlo sweeps
 #define EQ_MCS            2000          // Number of points to equilibrate and start sampling
 #define dw                3.24          // Distance between nodes from LJ minimum of water (A)
-#define WIDTH             500.0         // Width of the lattice [A]
-#define HEIGHT            300.0         // Heigth of the lattice [A]
-#define SURFACE_THICKNESS 20.0          // Thickness of the surface [A]
-#define AFM_TIP_RADIUS    70.0          // AFM tip radius [A]
+#define WIDTH             100.0         // Width of the lattice [A]
+#define HEIGHT            100.0         // Heigth of the lattice [A]
+#define SURFACE_THICKNESS 10.0          // Thickness of the surface [A]
+#define AFM_TIP_RADIUS    10.0          // AFM tip radius [A]
 #define AFM_TIP_HEIGTH    15.00          // Heigth to the surface [A]
 
 
 #define EPSNN   9.0                     // Interaction nearest neighbours [kJ/mol]
 #define RH      0.50                    // Relative humidity [%]
 #define MU_C    -2.0*EPSNN              // Critical chemical potential [kJ/mol] 
-#define BSURF   3.0*EPSNN              // Interaction of water with surface [kJ/mol]
+#define BSURF   3.0*EPSNN               // Interaction of water with surface [kJ/mol]
 #define R       8.31446261815324e-3     // Ideal gas constant [kJ/mol]
 #define T       298.0                   // Temperature [K]
 #define BETA    1.0/(R*T)               // (Inverse) Energy of the bath
 #define MU      MU_C + R*T*log(RH)      // Chemical potenial energy [kJ/mol] 
 
+#define MEAN_LATTICE_THR   0.5          // Threshold to consider has occupied one spin
 
 #define FNAME_LATTICE_0       "initial_lattice.dat"
 #define FNAME_LATTICE_MIN     "minimised_lattice.dat"
 #define FNAME_MEAN_LATTICE    "mean_minim_lattice.dat"
 #define FNAME_MCSWEEPS        "energy_sweeps.dat"
-
 
 
 struct Params
@@ -79,3 +79,6 @@ void gen_init(struct Lattice *lattice,
               double surf_thick,
               double tip_radius,
               double dtipsurf);
+
+
+

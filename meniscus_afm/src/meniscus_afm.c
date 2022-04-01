@@ -18,16 +18,17 @@
 ****************************************************************************/
 
 #include "meniscus_afm.h"
+#include "allvec.h"
 #include "rands.h"
 
 
 int main()
 {
-    double E0, E;
+    double E0, E;           // Energy before and after spin flip
+    int **mean_lattice;     // Mean lattice configuration after equilibration
+    double *energymcs;      // Energy per monte carlo step
     long *idum; 
     long foornd; 
-    int **mean_lattice;
-    double *energymcs;
     
     FILE *fid_lattice;
     FILE *fid_energymc;
@@ -54,11 +55,8 @@ int main()
         }
     }
     
-    // Allocate memmory for the mean lattice
-    mean_lattice = malloc((lattice.nh)*sizeof(int *));
-    for(int i=0;i<(lattice.nh); i++)
-        mean_lattice[i] = malloc(lattice.nw*sizeof(int));
-    
+    // Allocate memmory for the mean lattice and fill it
+    mean_lattice = imatrix(lattice.nh, lattice.nw);
     for(int i=0;i<lattice.nh; i++) {
         for(int j=0; j<lattice.nw; j++)
             mean_lattice[i][j]=0;
@@ -83,15 +81,10 @@ int main()
     params.bsurf = BSURF;
     params.beta = BETA;      
   
-    //--------------------------------------------------------------------------------/
     
-    
-    
-    
-    // MAIN MONTE CARLO ROUTINE   ++++++++++++++++++++++++++++++++++++++++++++++++++++/
+    // Initial energy configuration
     E=0;
     energymcs = malloc(MAX_MCS*sizeof(int *));
-
     for(int i=0; i<lattice.nh; i++) {
         for(int j=0; j<lattice.nw; j++) {
             if(lattice.lattice[i][j] != 2)
@@ -100,6 +93,9 @@ int main()
     }
     energymcs[0] = E;
     
+    //--------------------------------------------------------------------------------/
+    
+    // MAIN MONTE CARLO ROUTINE   ++++++++++++++++++++++++++++++++++++++++++++++++++++/
     
     for(int mcs=1; mcs<MAX_MCS; mcs++)
     {
@@ -127,9 +123,12 @@ int main()
             for(int j=0; j<lattice.nw; j++) {
                 
                 // Obtain average after minimisation
-                // TODO: THIS HAS TO BE CHANGED FOR THE RANGE 0 AND 1
-                if(mcs>EQ_MCS)
-                    mean_lattice[i][j] += lattice.lattice[i][j];
+                if(mcs>EQ_MCS) {
+                        if(lattice.lattice[i][j]==-1)
+                            mean_lattice[i][j]++;
+                        else if(lattice.lattice[i][j]==2)
+                            mean_lattice[i][j]= -2;
+                }
                 
                 // Calculate the total energy of the configuration
                 if(lattice.lattice[i][j] != 2)
@@ -145,31 +144,53 @@ int main()
     
     // SAVE DATA   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
     
-    // Save final configuration
+    // Save energy evolution (normalised)
     fid_energymc = fopen(FNAME_MCSWEEPS, "w");
-    for(int mcs=0; mcs<MAX_MCS; mcs++){
-        fprintf(fid_energymc,"%d\t%f\n", mcs, energymcs[mcs]);
-    }
+    for(int mcs=0; mcs<MAX_MCS; mcs++)
+        fprintf(fid_energymc,"%d\t%f\n", mcs, energymcs[mcs]/EPSNN);
     fclose(fid_energymc);
 
     
     
-    // Save minimal energy configuraion configuration
+    // Save one snapshot with the minimal energy configuraion configuration
     fid_lattice = fopen(FNAME_LATTICE_MIN, "w");
     for(int i=0; i<lattice.nh; i++){
         for(int j=0; j<lattice.nw; j++){
-            fprintf(fid_lattice,"%d\t", lattice.lattice[i][j]);
+            if(lattice.lattice[i][j]==1)
+                fprintf(fid_lattice,"%d\t", 0);
+            else if(lattice.lattice[i][j]== -1)
+                fprintf(fid_lattice,"%d\t", 1);
+            else
+                fprintf(fid_lattice,"%d\t", 2);
         }
         fprintf(fid_lattice,"\n");
     }
     fclose(fid_lattice);
+    
+    
+    // Save mean configuration
+    fid_lattice = fopen(FNAME_MEAN_LATTICE, "w");
+    for(int i=0; i<lattice.nh; i++){
+        for(int j=0; j<lattice.nw; j++){
+            
+            if(mean_lattice[i][j]==-2) {
+                fprintf(fid_lattice,"%d\t", 2);
+            } else {
+                if( ((double)mean_lattice[i][j])/(MAX_MCS-EQ_MCS-1) > MEAN_LATTICE_THR)
+                    fprintf(fid_lattice,"%d\t", 1);
+                else
+                    fprintf(fid_lattice,"%d\t", 0);
+            }  
+        }
+        fprintf(fid_lattice,"\n");
+    }
+   fclose(fid_lattice);
    
    //--------------------------------------------------------------------------------/
-    
-    
-    
-   //TODO: Liberar memoria!!
-    
+   
+   
+    free(mean_lattice);
+    free(lattice.lattice);
     
     return 0;
 }
@@ -257,10 +278,7 @@ void gen_init(struct Lattice *lattice,
     if(lattice->nw % 2 == 0)
         (lattice->nw)++;
     
-    lattice->lattice = malloc((lattice->nh)*sizeof(int *));
-    for(int i=0;i<(lattice->nh); i++)
-        lattice->lattice[i] = malloc(lattice->nw*sizeof(int));
-    
+    lattice->lattice = imatrix(lattice->nh, lattice->nw);
     for(int i=0;i<(lattice->nh); i++){
         for(int j=0;j<(lattice->nw); j++){
              lattice->lattice[i][j] = 1;
@@ -279,7 +297,7 @@ void gen_init(struct Lattice *lattice,
       
     // 2. Draw the AFM tip
     int x, y, y_parabola;
-    int x0 = (int)round(lattice->nw/2.0);
+    int x0 = (int)floor(lattice->nw/2.0);
     
     for(int i=0; i<ns; i++){
         for(int j=0;j<(lattice->nw); j++){
@@ -293,5 +311,3 @@ void gen_init(struct Lattice *lattice,
 }
 
 
-
-// TODO: ALLOCATE AND DEALLOCATE FUNCTIONS
