@@ -13,7 +13,7 @@ papers/*.pdf
 # Exclude the files of the AFM tip codes
 meniscus_afm/bin/*.dat
 meniscus_afm/bin/afmeniscus
-
+meniscus_afm/bin/*.pdf
 
 # Exclude the virus things
 dessiccation_viruses/GENERATION_SHAPE

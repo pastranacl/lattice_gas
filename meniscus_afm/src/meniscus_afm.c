@@ -157,11 +157,14 @@ int main()
     for(int i=0; i<lattice.nh; i++){
         for(int j=0; j<lattice.nw; j++){
             if(lattice.lattice[i][j]==1)
-                fprintf(fid_lattice,"%d\t", 0);
+                fprintf(fid_lattice,"%d", 0);
             else if(lattice.lattice[i][j]== -1)
-                fprintf(fid_lattice,"%d\t", 1);
+                fprintf(fid_lattice,"%d", 1);
             else
-                fprintf(fid_lattice,"%d\t", 2);
+                fprintf(fid_lattice,"%d", 2);
+            
+            if(j<lattice.nw-1)
+                fprintf(fid_lattice,"\t");
         }
         fprintf(fid_lattice,"\n");
     }
@@ -174,13 +177,15 @@ int main()
         for(int j=0; j<lattice.nw; j++){
             
             if(mean_lattice[i][j]==-2) {
-                fprintf(fid_lattice,"%d\t", 2);
+                fprintf(fid_lattice,"%d", 2);
             } else {
                 if( ((double)mean_lattice[i][j])/(MAX_MCS-EQ_MCS-1) > MEAN_LATTICE_THR)
-                    fprintf(fid_lattice,"%d\t", 1);
+                    fprintf(fid_lattice,"%d", 1);
                 else
-                    fprintf(fid_lattice,"%d\t", 0);
-            }  
+                    fprintf(fid_lattice,"%d", 0);
+            }
+            if(j<lattice.nw-1)
+                fprintf(fid_lattice,"\t");
         }
         fprintf(fid_lattice,"\n");
     }

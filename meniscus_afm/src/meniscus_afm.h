@@ -30,7 +30,7 @@
 #define HEIGHT            100.0         // Heigth of the lattice [A]
 #define SURFACE_THICKNESS 10.0          // Thickness of the surface [A]
 #define AFM_TIP_RADIUS    10.0          // AFM tip radius [A]
-#define AFM_TIP_HEIGTH    15.00          // Heigth to the surface [A]
+#define AFM_TIP_HEIGTH    10.00          // Heigth to the surface [A]
 
 
 #define EPSNN   9.0                     // Interaction nearest neighbours [kJ/mol]
@@ -42,7 +42,7 @@
 #define BETA    1.0/(R*T)               // (Inverse) Energy of the bath
 #define MU      MU_C + R*T*log(RH)      // Chemical potenial energy [kJ/mol] 
 
-#define MEAN_LATTICE_THR   0.5          // Threshold to consider has occupied one spin
+#define MEAN_LATTICE_THR   0.75          // Threshold to consider has occupied one spin
 
 #define FNAME_LATTICE_0       "initial_lattice.dat"
 #define FNAME_LATTICE_MIN     "minimised_lattice.dat"
