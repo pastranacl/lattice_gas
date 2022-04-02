@@ -193,9 +193,9 @@ int main()
    
    //--------------------------------------------------------------------------------/
    
-   
     free(mean_lattice);
     free(lattice.lattice);
+    free(energymcs);
     
     return 0;
 }

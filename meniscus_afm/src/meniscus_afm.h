@@ -30,11 +30,11 @@
 #define HEIGHT            100.0         // Heigth of the lattice [A]
 #define SURFACE_THICKNESS 10.0          // Thickness of the surface [A]
 #define AFM_TIP_RADIUS    10.0          // AFM tip radius [A]
-#define AFM_TIP_HEIGTH    10.00          // Heigth to the surface [A]
+#define AFM_TIP_HEIGTH    16.20          // Heigth to the surface [A]
 
 
 #define EPSNN   9.0                     // Interaction nearest neighbours [kJ/mol]
-#define RH      0.50                    // Relative humidity [%]
+#define RH      0.30                    // Relative humidity [%]
 #define MU_C    -2.0*EPSNN              // Critical chemical potential [kJ/mol] 
 #define BSURF   3.0*EPSNN               // Interaction of water with surface [kJ/mol]
 #define R       8.31446261815324e-3     // Ideal gas constant [kJ/mol]

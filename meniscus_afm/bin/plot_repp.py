@@ -8,18 +8,21 @@ from matplotlib import colors
 
 
 
-def colormap_afm(name='custom_divergent_cm'):
+def colormap_afm(name='afm_color_cm'):
 
     cm = np.ones((3, 4))
     
+    # Color empty space
     cm[0, 0] = 1
     cm[0, 1] = 1
     cm[0, 2] = 1
     
+    # Water
     cm[1, 0] = 0.215686
     cm[1, 1] = 0.443137
     cm[1, 2] = 0.784313
     
+    # Surfaces
     cm[2, 0] = 0.2
     cm[2, 1] = 0.2
     cm[2, 2] = 0.2
@@ -41,7 +44,7 @@ def main():
     yvals = np.linspace(-nr/2, nr/2, nr)
     xvals = np.linspace(-nc/2, nc/2, nc)
     
-    colorsafm = colormap_afm(name='custom_divergent_cm')
+    colorsafm = colormap_afm(name='afm_color_cm')
     
     # Plot and setting parameters of the heatmap 
     plt.rcParams['mathtext.fontset'] = 'stix'
