@@ -77,7 +77,26 @@ double locenergy(struct Lattice *lattice,
                  struct Params *params, 
                  int x, int y);
 
-void icosahedron(double R0, double theta, double *x, double *y);
+
+
+
+/****************************************************************/
+/*                          icosahedron                         */
+/* Calculates the xy positions of a polar definition to draw a  */
+/* a shape that resembles the cross-section of an icosahedron   */ 
+/****************************************************************/
+inline void icosahedron(double R0, double theta, double *x, double *y)
+{
+    const double A = 0.03;
+    double pf = (1.0 + A*sin(6.0*theta));
+    double r;
+    
+    r = sqrt(R0*R0*pf*pf);
+    *x = r*cos(theta);
+    *y = r*sin(theta);
+}
+
+
 
 
 

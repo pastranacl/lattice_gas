@@ -291,8 +291,8 @@ void gen_init(struct Lattice *lattice,
     lattice->lattice = imatrix(lattice->nh, lattice->nw);
 
     // Draw the virus
-    const double dtheta = 2.0*PI/10000.0;
-    const int n_theta = (int)(2.0*PI - virus->theta0)/dtheta;
+    const double dtheta = 2.0*PI/100000.0;
+    const int n_theta = (int)round((2.0*PI - virus->theta0)/dtheta);
     double tradius;
     double x,y;
     double theta;
@@ -310,29 +310,13 @@ void gen_init(struct Lattice *lattice,
             theta = virus->theta0 + i*dtheta;
             icosahedron(tradius, theta, &x, &y);
             
-            xc = (int)floor(x/dw + center);
-            yc = (int)floor(y/dw + center);
+            xc = (int)round(x/dw + (double)center);
+            yc = (int)round(y/dw + (double)center);
             lattice->lattice[xc][yc] = 2;
 
         }
     }
 }
 
-
-/****************************************************************/
-/*                          icosahedron                         */
-/* Calculates the xy positions of a polar definition to draw a  */
-/* a shape that resembles the cross-section of an icosahedron   */ 
-/****************************************************************/
-void icosahedron(double R0, double theta, double *x, double *y)
-{
-    const double A = 0.03;
-    double pf = (1.0 + A*sin(6.0*theta));
-    double r;
-    
-    r = sqrt(R0*R0*pf*pf);
-    *x = r*cos(theta);
-    *y = r*sin(theta);
-}
 
 
