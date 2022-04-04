@@ -26,15 +26,15 @@
 #define MAX_MCS           5000          // Total number of Monte-Carlo sweeps
 #define EQ_MCS            2000          // Number of points to equilibrate and start sampling
 #define dw                3.24          // Distance between nodes from LJ minimum of water (A)
-#define WIDTH             100.0         // Width of the lattice [A]
-#define HEIGHT            100.0         // Heigth of the lattice [A]
+#define WIDTH             300.0         // Width of the lattice [A]
+#define HEIGHT            300.0         // Heigth of the lattice [A]
 #define SURFACE_THICKNESS 10.0          // Thickness of the surface [A]
-#define AFM_TIP_RADIUS    10.0          // AFM tip radius [A]
-#define AFM_TIP_HEIGTH    16.20          // Heigth to the surface [A]
+#define AFM_TIP_RADIUS    30.0          // AFM tip radius [A]
+#define AFM_TIP_HEIGTH    17.00          // Heigth to the surface [A]
 
 
 #define EPSNN   9.0                     // Interaction nearest neighbours [kJ/mol]
-#define RH      0.30                    // Relative humidity [%]
+#define RH      0.60                    // Relative humidity [%]
 #define MU_C    -2.0*EPSNN              // Critical chemical potential [kJ/mol] 
 #define BSURF   3.0*EPSNN               // Interaction of water with surface [kJ/mol]
 #define R       8.31446261815324e-3     // Ideal gas constant [kJ/mol]
@@ -42,7 +42,7 @@
 #define BETA    1.0/(R*T)               // (Inverse) Energy of the bath
 #define MU      MU_C + R*T*log(RH)      // Chemical potenial energy [kJ/mol] 
 
-#define MEAN_LATTICE_THR   0.75          // Threshold to consider has occupied one spin
+#define MEAN_LATTICE_THR   0.5          // Threshold to consider has occupied one spin
 
 #define FNAME_LATTICE_0       "initial_lattice.dat"
 #define FNAME_LATTICE_MIN     "minimised_lattice.dat"

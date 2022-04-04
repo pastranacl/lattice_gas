@@ -41,22 +41,37 @@ int main()
     // Generate the lattice and memory allocation
     struct Lattice lattice;
     struct Virus virus;
-    
-    
-    gen_init(struct Lattice *lattice, 
-             struct Virus *virus);
+    struct Params params;
     
     
     
+    //Assign parameters
     
-    // Fill the empty space randomly
+    virus.Rc = 50*10;
+    virus.t =  3*10;
+    virus.theta0 = 0.0;
+    
+    params.eps = EPSNN;       
+    params.mu = MU;       
+    params.bsurf = BSURF;
+    params.beta = BETA;      
+    
+    
+    
+    gen_init(&lattice, &virus);
+    
+    
+    // Fill the empty space randomly with water
     for(int i=0; i<lattice.nh; i++){
         for(int j=0; j<lattice.nw; j++){
             if(lattice.lattice[i][j]!=2){
+                 lattice.lattice[i][j] = 1;
+                /*
                 if(ran1(idum)>0.5)
                     lattice.lattice[i][j] = 1;
                 else
                     lattice.lattice[i][j] = -1;
+                */
             }
         }
     }
@@ -80,15 +95,11 @@ int main()
     fclose(fid_lattice);
     
     
-    // Derived quantities
-    struct Params params;
-    params.eps = EPSNN;       
-    params.mu = MU;       
-    params.bsurf = BSURF;
-    params.beta = BETA;      
+   
   
     
     // Initial energy configuration
+    /*
     E=0;
     energymcs = malloc(MAX_MCS*sizeof(int *));
     for(int i=0; i<lattice.nh; i++) {
@@ -202,7 +213,7 @@ int main()
     free(mean_lattice);
     free(lattice.lattice);
     free(energymcs);
-    
+    */
     return 0;
 }
 
@@ -226,8 +237,8 @@ double locenergy(struct Lattice *lattice,
     
     xl = xl - (int)floor((double)xl/lattice->nw)*(lattice->nw);
     xr = xr - (int)floor((double)xr/lattice->nw)*(lattice->nw);
-    yl = yl - (int)floor((double)yl/lattice->nh)*(lattice->nh);
-    yr = yr - (int)floor((double)yr/lattice->nh)*(lattice->nh);
+    yt = yt - (int)floor((double)yt/lattice->nh)*(lattice->nh);
+    yb = yb - (int)floor((double)yb/lattice->nh)*(lattice->nh);
     
     // Top neigthbour
     E=0;
@@ -254,13 +265,10 @@ double locenergy(struct Lattice *lattice,
     else
         E += -params->bsurf*(1.0-lattice->lattice[y][x])/2.0;
 
-    
     // 2.- Chemical potential
     E += (2.0*params->eps + params->mu)*(lattice->lattice[y][x])/2.0;
-    
 
     return E;
-    
 }
 
 
@@ -275,7 +283,7 @@ void gen_init(struct Lattice *lattice,
               struct Virus *virus)
 {
     
-    lattice->nw = (int)round(4.0*(virus.R + virus.t));
+    lattice->nw = (int)round(4.0*(virus->Rc + virus->t/2.0)/dw);
     if(lattice->nw % 2 == 0)
         (lattice->nw)++;
 
@@ -283,31 +291,48 @@ void gen_init(struct Lattice *lattice,
     lattice->lattice = imatrix(lattice->nh, lattice->nw);
 
     // Draw the virus
-    const double dtheta = PI/8.0;
+    const double dtheta = 2.0*PI/10000.0;
+    const int n_theta = (int)(2.0*PI - virus->theta0)/dtheta;
     double tradius;
     double x,y;
     double theta;
-    int xl,yl;
+    int xc,yc;
     int nls_thick;
     int center;
     
-    nls_thick=(int)round(virus.t/dw);
-    center = (int)floor(lattice->nw) + 1;
+    nls_thick=(int)round(virus->t/dw);
+    center = (int)floor(lattice->nw/2.0) + 1;
     
     for(int h=0; h<nls_thick; h++) { // Iterate over thickness
-        tradius = h*dw + virus.R - t/2.0;
-        for(int i=0; i<n_theta; i++) { // Iterate over angles
+        tradius = h*dw + virus->Rc - virus->t/2.0;
+        for(int i=0; i<=n_theta; i++) { // Iterate over angles
             
-            theta = virus.theta0 + i*Dtheta;
-            icosahedron(tradius, theta, &x, &y) // TODO: Check that this works
+            theta = virus->theta0 + i*dtheta;
+            icosahedron(tradius, theta, &x, &y);
             
-            xl = (int)(x/dw + center);
-            yl = (int)(y/dw + center);
-            lattice->lattice[xl][yl] = 2;
+            xc = (int)floor(x/dw + center);
+            yc = (int)floor(y/dw + center);
+            lattice->lattice[xc][yc] = 2;
+
         }
     }
 }
 
 
+/****************************************************************/
+/*                          icosahedron                         */
+/* Calculates the xy positions of a polar definition to draw a  */
+/* a shape that resembles the cross-section of an icosahedron   */ 
+/****************************************************************/
+void icosahedron(double R0, double theta, double *x, double *y)
+{
+    const double A = 0.03;
+    double pf = (1.0 + A*sin(6.0*theta));
+    double r;
+    
+    r = sqrt(R0*R0*pf*pf);
+    *x = r*cos(theta);
+    *y = r*sin(theta);
+}
 
 

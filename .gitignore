@@ -15,7 +15,10 @@ meniscus_afm/bin/*.dat
 meniscus_afm/bin/afmeniscus
 meniscus_afm/bin/*.pdf
 
-# Exclude the virus things
+# Exclude the virus codes
 dessiccation_viruses/GENERATION_SHAPE
-
+dessiccation_viruses/bin/*.dat
+dessiccation_viruses/*.pdf
+dessiccation_viruses/*.png
+dessiccation_viruses/*.gp
 
