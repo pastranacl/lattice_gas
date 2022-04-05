@@ -1,5 +1,5 @@
 C := gcc
-FLAGS := -std=c99 -lm -O3
+FLAGS := -std=c99 -lm -fopenmp -O3
 FLAGS_DEBUG := -std=c99 -g -lm
 
 BIN_PATH := ./bin

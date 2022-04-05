@@ -25,12 +25,12 @@
 
 #define PI 3.14159265358979323846264338327950288419716939937
 
-#define MAX_MCS           5000          // Total number of Monte-Carlo sweeps
-#define EQ_MCS            2000          // Number of points to equilibrate and start sampling
+#define MAX_MCS           1500          // Total number of Monte-Carlo sweeps
+#define EQ_MCS            500          // Number of points to equilibrate before start sampling
 #define dw                3.24          // Distance between nodes from LJ minimum of water (A)
 
 #define EPSNN   9.0                     // Interaction nearest neighbours [kJ/mol]
-#define RH      0.30                    // Relative humidity [%]
+#define RH      0.65                    // Relative humidity [%]
 #define MU_C    -2.0*EPSNN              // Critical chemical potential [kJ/mol] 
 #define BSURF   3.0*EPSNN               // Interaction of water with surface [kJ/mol]
 #define R       8.31446261815324e-3     // Ideal gas constant [kJ/mol]
@@ -38,7 +38,11 @@
 #define BETA    1.0/(R*T)               // (Inverse) Energy of the bath
 #define MU      MU_C + R*T*log(RH)      // Chemical potenial energy [kJ/mol] 
 
-#define MEAN_LATTICE_THR   0.75          // Threshold to consider has occupied one spin
+#define VIR_R   20.0                    // Radius of virus [A]
+#define VIR_T   3.0                     // Thickness of the viral shell [A] 
+#define THETA0  0.0                     // Range of theta to plot
+
+#define MEAN_LATTICE_THR   0.50         // Threshold to consider has occupied one spin
 
 #define FNAME_LATTICE_0       "initial_lattice.dat"
 #define FNAME_LATTICE_MIN     "minimised_lattice.dat"

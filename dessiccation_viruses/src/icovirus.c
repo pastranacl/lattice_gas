@@ -44,12 +44,10 @@ int main()
     struct Params params;
     
     
-    
     //Assign parameters
-    
-    virus.Rc = 50*10;
-    virus.t =  3*10;
-    virus.theta0 = 0.0;
+    virus.Rc = VIR_R*10.0; // A->nm
+    virus.t =  VIR_T*10.0;
+    virus.theta0 = THETA0;
     
     params.eps = EPSNN;       
     params.mu = MU;       
@@ -57,7 +55,7 @@ int main()
     params.beta = BETA;      
     
     
-    
+    // Construct lattice and draw the virus
     gen_init(&lattice, &virus);
     
     
@@ -66,12 +64,10 @@ int main()
         for(int j=0; j<lattice.nw; j++){
             if(lattice.lattice[i][j]!=2){
                  lattice.lattice[i][j] = 1;
-                /*
                 if(ran1(idum)>0.5)
                     lattice.lattice[i][j] = 1;
                 else
                     lattice.lattice[i][j] = -1;
-                */
             }
         }
     }
@@ -95,11 +91,7 @@ int main()
     fclose(fid_lattice);
     
     
-   
-  
-    
     // Initial energy configuration
-    /*
     E=0;
     energymcs = malloc(MAX_MCS*sizeof(int *));
     for(int i=0; i<lattice.nh; i++) {
@@ -113,7 +105,6 @@ int main()
     //--------------------------------------------------------------------------------/
     
     // MAIN MONTE CARLO ROUTINE   ++++++++++++++++++++++++++++++++++++++++++++++++++++/
-    
     for(int mcs=1; mcs<MAX_MCS; mcs++)
     {
         for(int i=0; i<lattice.nh; i++){ 
@@ -136,6 +127,7 @@ int main()
         
         
         E=0;
+        #pragma omp parallel for reduction(+:E)
         for(int i=0; i<lattice.nh; i++) {
             for(int j=0; j<lattice.nw; j++) {
                 
@@ -209,11 +201,11 @@ int main()
    fclose(fid_lattice);
    
    //--------------------------------------------------------------------------------/
-   
+    
     free(mean_lattice);
     free(lattice.lattice);
     free(energymcs);
-    */
+   
     return 0;
 }
 
@@ -248,7 +240,7 @@ double locenergy(struct Lattice *lattice,
         E += -params->bsurf*(1.0-lattice->lattice[y][x])/2.0;
         
     // Bottom neigthbour
-    if(lattice->lattice[yb][x] != 2 && yb<lattice->nw-1)
+    if(lattice->lattice[yb][x] != 2)
         E += -params->eps*lattice->lattice[yb][x]*lattice->lattice[y][x]/4.0;
     else
         E += -params->bsurf*(1.0-lattice->lattice[y][x])/2.0;
@@ -282,7 +274,7 @@ double locenergy(struct Lattice *lattice,
 void gen_init(struct Lattice *lattice, 
               struct Virus *virus)
 {
-    
+    // The size is 4xRc
     lattice->nw = (int)round(4.0*(virus->Rc + virus->t/2.0)/dw);
     if(lattice->nw % 2 == 0)
         (lattice->nw)++;
@@ -291,7 +283,7 @@ void gen_init(struct Lattice *lattice,
     lattice->lattice = imatrix(lattice->nh, lattice->nw);
 
     // Draw the virus
-    const double dtheta = 2.0*PI/100000.0;
+    const double dtheta = 2.0*PI/10000.0;
     const int n_theta = (int)round((2.0*PI - virus->theta0)/dtheta);
     double tradius;
     double x,y;
