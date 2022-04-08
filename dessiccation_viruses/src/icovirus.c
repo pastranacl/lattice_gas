@@ -25,7 +25,7 @@
 int main()
 {
     double E0, E;           // Energy before and after spin flip
-    int **mean_lattice;     // Mean lattice configuration after equilibration
+    double **mean_lattice;     // Mean lattice configuration after equilibration
     double *energymcs;      // Energy per monte carlo step
     long *idum; 
     long foornd; 
@@ -73,7 +73,7 @@ int main()
     }
     
     // Allocate memmory for the mean lattice and fill it with zeros
-    mean_lattice = imatrix(lattice.nh, lattice.nw);
+    mean_lattice = dmatrix(lattice.nh, lattice.nw);
     for(int i=0;i<lattice.nh; i++) {
         for(int j=0; j<lattice.nw; j++)
             mean_lattice[i][j]=0;
@@ -185,6 +185,7 @@ int main()
     for(int i=0; i<lattice.nh; i++){
         for(int j=0; j<lattice.nw; j++){
             
+            /* All or nothing
             if(mean_lattice[i][j]==-2) {
                 fprintf(fid_lattice,"%d", 2);
             } else {
@@ -193,6 +194,24 @@ int main()
                 else
                     fprintf(fid_lattice,"%d", 0);
             }
+            */
+            
+            
+            if(mean_lattice[i][j]==-2) {
+                fprintf(fid_lattice,"%d", 2);
+            } else {
+                double rho = mean_lattice[i][j]/(MAX_MCS-EQ_MCS-1);
+                if(rho >= 0.00 && rho < 0.25 )
+                    fprintf(fid_lattice,"%f", 0.25);
+                else if(rho >= 0.25 && rho < 0.50 )
+                    fprintf(fid_lattice,"%f", 0.50);
+                else if(rho >= 0.50 && rho < 0.75 )
+                    fprintf(fid_lattice,"%f", 0.75);
+                else if(rho >= 0.75)
+                    fprintf(fid_lattice,"%f", 1.0);
+            }
+            
+            
             if(j<lattice.nw-1)
                 fprintf(fid_lattice,"\t");
         }
@@ -202,8 +221,8 @@ int main()
    
    //--------------------------------------------------------------------------------/
     
-    free(mean_lattice);
-    free(lattice.lattice);
+    free_dmatrix(mean_lattice, lattice.nw);
+    free_imatrix(lattice.lattice, lattice.nw);
     free(energymcs);
    
     return 0;
@@ -300,6 +319,19 @@ void gen_init(struct Lattice *lattice,
         for(int i=0; i<=n_theta; i++) { // Iterate over angles
             
             theta = virus->theta0 + i*dtheta;
+            /* This can be used to generate multiple cavities
+            double tcavity = PI/20;
+            if(theta>PI/2-tcavity && theta<PI/2 +tcavity)
+                continue;
+            if(theta>PI-tcavity && theta< PI +tcavity)
+                continue;
+            if(theta>3*PI/2-tcavity && theta< 3*PI/2 +tcavity)
+                continue;
+            if(theta>PI-tcavity && theta<PI+tcavity)
+                continue;
+            if(theta<tcavity)
+                continue;
+            */
             icosahedron(tradius, theta, &x, &y);
             
             xc = (int)round(x/dw + (double)center);

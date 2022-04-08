@@ -8,43 +8,15 @@ from matplotlib import colors
 
 
 
-def colormap_afm(name='afm_color_cm'):
-
-    cm = np.ones((3, 4))
-    
-    # Color empty space
-    cm[0, 0] = 1
-    cm[0, 1] = 1
-    cm[0, 2] = 1
-    
-    # Water
-    cm[1, 0] = 0.215686
-    cm[1, 1] = 0.443137
-    cm[1, 2] = 0.784313
-    
-    # Surfaces
-    cm[2, 0] = 0.2
-    cm[2, 1] = 0.2
-    cm[2, 2] = 0.2
-    
-    new_mp =  matplotlib.colors.ListedColormap(cm)
-    plt.register_cmap(name, cmap=new_mp)
-
-
-    return new_mp
-
-
 def main():
 
     # Load data
-    data = np.loadtxt("./mean_minim_lattice.dat", delimiter="\t", dtype ="int") 
+    data = np.loadtxt("./mean_minim_lattice.dat", delimiter="\t") 
     data = np.flipud(data)
     nr,nc = data.shape
     
     yvals = np.linspace(-nr/2, nr/2, nr)
     xvals = np.linspace(-nc/2, nc/2, nc)
-    
-    colorsafm = colormap_afm(name='afm_color_cm')
     
     # Plot and setting parameters of the heatmap 
     plt.rcParams['mathtext.fontset'] = 'stix'
@@ -55,11 +27,15 @@ def main():
     plt.rcParams['font.sans-serif'] = ['FreeSans']
     fig = plt.figure()
     ax = fig.gca()
-    c = ax.pcolor(xvals,yvals,data, cmap=colorsafm, vmin=0, vmax=2)
+    
+    boundaries = [0.00, 0.26, 0.51, 0.76, 1.01, 2.01]
+    colorvirus=['#ffffff', '#afc6e9', '#739bd9', '#3771c8',  '#333333']
+    cml = matplotlib.colors.ListedColormap(colorvirus)
+    norm = matplotlib.colors.BoundaryNorm(boundaries, cml.N, clip=True)
+    
+    c = ax.pcolor(xvals, yvals, data, cmap=cml, norm=norm)
 
 
-    #ax.xaxis.set_ticks(np.linspace(60, 85, 6))
-    #ax.yaxis.set_ticks(np.linspace(0, 0.50, 6))
     ax.tick_params(axis=u'both', which=u'both',length=0)
 
 
