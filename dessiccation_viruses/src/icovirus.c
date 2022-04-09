@@ -125,7 +125,6 @@ int main()
             }
         }
         
-        
         E=0;
         #pragma omp parallel for reduction(+:E)
         for(int i=0; i<lattice.nh; i++) {
@@ -145,7 +144,6 @@ int main()
             }
         }
         energymcs[mcs] = E;
-        
     }
     
     //--------------------------------------------------------------------------------/
@@ -294,7 +292,8 @@ void gen_init(struct Lattice *lattice,
               struct Virus *virus)
 {
     // The size is 4xRc
-    lattice->nw = (int)round(4.0*(virus->Rc + virus->t/2.0)/dw);
+    const double FACTR = 6.0;
+    lattice->nw = (int)round(FACTR*(virus->Rc + virus->t/2.0)/dw);
     if(lattice->nw % 2 == 0)
         (lattice->nw)++;
 
@@ -302,7 +301,7 @@ void gen_init(struct Lattice *lattice,
     lattice->lattice = imatrix(lattice->nh, lattice->nw);
 
     // Draw the virus
-    const double dtheta = 2.0*PI/10000.0;
+    const double dtheta = 2.0*PI/1000.0;
     const int n_theta = (int)round((2.0*PI - virus->theta0)/dtheta);
     double tradius;
     double x,y;
@@ -338,6 +337,30 @@ void gen_init(struct Lattice *lattice,
             yc = (int)round(y/dw + (double)center);
             lattice->lattice[xc][yc] = 2;
 
+        }
+    }
+    
+    
+    // Fill regions that are empty in the shell
+    for(int i=1; i<lattice->nw-1; i++) {
+        for(int j=1; j<lattice->nw-1; j++) {    
+            int xl, xr, yu, yd;
+            xl = i-1;
+            xr = i+1;
+            yu = j-1;
+            yd = j+1;
+            
+            int nns=0;
+            if( lattice->lattice[yu][i] == 2)
+                nns++; 
+            if(lattice->lattice[yd][i] == 2)
+                nns++;
+            if(lattice->lattice[j][xl] == 2)
+                nns++;
+            if(lattice->lattice[j][xr] == 2)
+                nns++;
+            if(nns>2)
+                lattice->lattice[i][j] = 2;
         }
     }
 }
