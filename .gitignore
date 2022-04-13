@@ -4,11 +4,12 @@ docs/*.aux
 docs/*.log
 docs/*.gz
 docs/*.tex
-docs/.bib
-docs/.bbl
-docs/.blg
-docs/.bcf
-docs/.xml
+docs/*.bib
+docs/*.bbl
+docs/*.blg
+docs/*.bcf
+docs/*.xml
+
 
 # Exclude the papers
 papers/*.pdf
