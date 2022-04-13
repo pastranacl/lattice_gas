@@ -4,7 +4,11 @@ docs/*.aux
 docs/*.log
 docs/*.gz
 docs/*.tex
-
+docs/.bib
+docs/.bbl
+docs/.blg
+docs/.bcf
+docs/.xml
 
 # Exclude the papers
 papers/*.pdf
@@ -15,11 +19,12 @@ meniscus_afm/bin/*.dat
 meniscus_afm/bin/afmeniscus
 meniscus_afm/bin/*.pdf
 
+
+
 # Exclude the virus codes
 dessiccation_viruses/GENERATION_SHAPE
 dessiccation_viruses/bin/icovirus
-dessiccation_viruses/GENERATION_SHAPE
-dessiccation_viruses/*.pdf
-dessiccation_viruses/*.png
-dessiccation_viruses/*.gp
-
+dessiccation_viruses/bin/*.pdf
+dessiccation_viruses/bin/*.png
+dessiccation_viruses/bin/*.gp
+dessiccation_viruses/bin/*.dat

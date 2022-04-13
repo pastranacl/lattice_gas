@@ -1,0 +1,62 @@
+This is BibTeX, Version 0.99d (TeX Live 2019/dev/Debian)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: lattice_gas_surfaces.aux
+The style file: apsrev4-1.bst
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Database file #1: refs.bib
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+merlin.mbs apsrev4-1.bst 2010-07-25 4.21a (PWD, AO, DPC) hacked
+Control: key (0) 
+Control: author (72) initials jnrlst
+Control: editor formatted (1) identically to author
+Control: production of article title (-1) disabled
+Control: page (0) single
+Control: year (1) truncated
+Control: production of eprint (0) enabled
+You've used 4 entries,
+            5847 wiz_defined-function locations,
+            1625 strings with 15430 characters,
+and the built_in function-call counts, 4858 in all, are:
+= -- 267
+> -- 149
+< -- 35
++ -- 48
+- -- 36
+* -- 810
+:= -- 454
+add.period$ -- 4
+call.type$ -- 4
+change.case$ -- 16
+chr.to.int$ -- 4
+cite$ -- 4
+duplicate$ -- 435
+empty$ -- 334
+format.name$ -- 84
+if$ -- 941
+int.to.chr$ -- 1
+int.to.str$ -- 12
+missing$ -- 54
+newline$ -- 64
+num.names$ -- 12
+pop$ -- 177
+preamble$ -- 1
+purify$ -- 20
+quote$ -- 0
+skip$ -- 162
+stack$ -- 0
+substring$ -- 109
+swap$ -- 437
+text.length$ -- 18
+text.prefix$ -- 0
+top$ -- 8
+type$ -- 62
+warning$ -- 0
+while$ -- 12
+width$ -- 0
+write$ -- 84

@@ -194,7 +194,6 @@ int main()
             }
             */
             
-            
             if(mean_lattice[i][j]==-2) {
                 fprintf(fid_lattice,"%d", 2);
             } else {
@@ -318,19 +317,22 @@ void gen_init(struct Lattice *lattice,
         for(int i=0; i<=n_theta; i++) { // Iterate over angles
             
             theta = virus->theta0 + i*dtheta;
-            /* This can be used to generate multiple cavities
-            double tcavity = PI/20;
-            if(theta>PI/2-tcavity && theta<PI/2 +tcavity)
+            /* This can be used to generate multiple cavities*/
+            double tcavity = PI/20.0;
+            if(theta>PI/3.0-tcavity && theta<PI/3.0 + tcavity)
                 continue;
-            if(theta>PI-tcavity && theta< PI +tcavity)
+            if(theta>2.0*PI/3.0-tcavity && theta<2.0*PI/3.0 + tcavity)
                 continue;
-            if(theta>3*PI/2-tcavity && theta< 3*PI/2 +tcavity)
+            if(theta>3.0*PI/3.0-tcavity && theta<3.0*PI/3.0 + tcavity)
                 continue;
-            if(theta>PI-tcavity && theta<PI+tcavity)
+            if(theta>4.0*PI/3.0-tcavity && theta<4.0*PI/3.0 + tcavity)
                 continue;
-            if(theta<tcavity)
+            if(theta>5.0*PI/3.0-tcavity && theta<5.0*PI/3.0 + tcavity)
                 continue;
-            */
+            if(theta>6.0*PI/3.0-tcavity && theta<6.0*PI/3.0 + tcavity)
+                continue;
+            
+            
             icosahedron(tradius, theta, &x, &y);
             
             xc = (int)round(x/dw + (double)center);
@@ -341,7 +343,8 @@ void gen_init(struct Lattice *lattice,
     }
     
     
-    // Fill regions that are empty in the shell
+    // Fill regions that are empty in the middle of the shell
+    /*
     for(int i=1; i<lattice->nw-1; i++) {
         for(int j=1; j<lattice->nw-1; j++) {    
             int xl, xr, yu, yd;
@@ -359,10 +362,12 @@ void gen_init(struct Lattice *lattice,
                 nns++;
             if(lattice->lattice[j][xr] == 2)
                 nns++;
-            if(nns>2)
+            if(nns>3)
                 lattice->lattice[i][j] = 2;
         }
     }
+    */
+    
 }
 
 

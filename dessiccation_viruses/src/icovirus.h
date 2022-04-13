@@ -30,7 +30,7 @@
 #define dw                3.24          // Distance between nodes from LJ minimum of water (A)
 
 #define EPSNN   9.0                     // Interaction nearest neighbours [kJ/mol]
-#define RH      0.90                    // Relative humidity [%]
+#define RH      0.97                    // Relative humidity [%]
 #define MU_C    -2.0*EPSNN              // Critical chemical potential [kJ/mol] 
 #define BSURF   3.0*EPSNN               // Interaction of water with surface [kJ/mol]
 #define R       8.31446261815324e-3     // Ideal gas constant [kJ/mol]
