@@ -183,7 +183,7 @@ int main()
     for(int i=0; i<lattice.nh; i++){
         for(int j=0; j<lattice.nw; j++){
             
-            /* All or nothing
+            /* All or nothing (threshold to consider if occupied or not)
             if(mean_lattice[i][j]==-2) {
                 fprintf(fid_lattice,"%d", 2);
             } else {
@@ -194,6 +194,8 @@ int main()
             }
             */
             
+            
+            /* Occupation density in intervals of 0.25 */
             if(mean_lattice[i][j]==-2) {
                 fprintf(fid_lattice,"%d", 2);
             } else {
@@ -300,7 +302,7 @@ void gen_init(struct Lattice *lattice,
     lattice->lattice = imatrix(lattice->nh, lattice->nw);
 
     // Draw the virus
-    const double dtheta = 2.0*PI/1000.0;
+    const double dtheta = 2.0*PI/10000.0;
     const int n_theta = (int)round((2.0*PI - virus->theta0)/dtheta);
     double tradius;
     double x,y;
@@ -318,19 +320,12 @@ void gen_init(struct Lattice *lattice,
             
             theta = virus->theta0 + i*dtheta;
             /* This can be used to generate multiple cavities*/
-            double tcavity = PI/20.0;
-            if(theta>PI/3.0-tcavity && theta<PI/3.0 + tcavity)
-                continue;
-            if(theta>2.0*PI/3.0-tcavity && theta<2.0*PI/3.0 + tcavity)
-                continue;
-            if(theta>3.0*PI/3.0-tcavity && theta<3.0*PI/3.0 + tcavity)
-                continue;
-            if(theta>4.0*PI/3.0-tcavity && theta<4.0*PI/3.0 + tcavity)
-                continue;
-            if(theta>5.0*PI/3.0-tcavity && theta<5.0*PI/3.0 + tcavity)
-                continue;
-            if(theta>6.0*PI/3.0-tcavity && theta<6.0*PI/3.0 + tcavity)
-                continue;
+            const double tcavity = PI/30.0;
+           
+            //if(theta >2.0*PI - tcavity)
+            //if(theta>PI/6.0-tcavity && theta<PI/6.0 + tcavity)
+            //    continue;
+           
             
             
             icosahedron(tradius, theta, &x, &y);
@@ -338,7 +333,24 @@ void gen_init(struct Lattice *lattice,
             xc = (int)round(x/dw + (double)center);
             yc = (int)round(y/dw + (double)center);
             lattice->lattice[xc][yc] = 2;
-
+            
+            
+            if(theta<tcavity)
+                lattice->lattice[xc][yc] = 0;
+            if(theta>2*PI-tcavity)
+                lattice->lattice[xc][yc] = 0;
+            
+            if(theta>PI/3.0-tcavity && theta<PI/3.0+tcavity)
+                lattice->lattice[xc][yc] = 0;
+            if(theta>2.0*PI/3.0-tcavity && theta<2.0*PI/3.0+tcavity)
+                lattice->lattice[xc][yc] = 0;
+            if(theta>3.0*PI/3.0-tcavity && theta<3.0*PI/3.0+tcavity)
+                lattice->lattice[xc][yc] = 0;
+            if(theta>4.0*PI/3.0-tcavity && theta<4.0*PI/3.0+tcavity)
+                lattice->lattice[xc][yc] = 0;
+            if(theta>5.0*PI/3.0-tcavity && theta<5.0*PI/3.0+tcavity)
+                lattice->lattice[xc][yc] = 0;
+            
         }
     }
     
@@ -362,12 +374,11 @@ void gen_init(struct Lattice *lattice,
                 nns++;
             if(lattice->lattice[j][xr] == 2)
                 nns++;
-            if(nns>3)
+            if(nns>=2)
                 lattice->lattice[i][j] = 2;
         }
     }
     */
-    
 }
 
 

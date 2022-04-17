@@ -25,12 +25,12 @@
 
 #define PI 3.14159265358979323846264338327950288419716939937
 
-#define MAX_MCS           4500          // Total number of Monte-Carlo sweeps
-#define EQ_MCS            4000          // Number of points to equilibrate before start sampling
+#define MAX_MCS           6000          // Total number of Monte-Carlo sweeps
+#define EQ_MCS            5500          // Number of points to equilibrate before start sampling
 #define dw                3.24          // Distance between nodes from LJ minimum of water (A)
 
 #define EPSNN   9.0                     // Interaction nearest neighbours [kJ/mol]
-#define RH      0.97                    // Relative humidity [%]
+#define RH      0.90                    // Relative humidity [%]
 #define MU_C    -2.0*EPSNN              // Critical chemical potential [kJ/mol] 
 #define BSURF   3.0*EPSNN               // Interaction of water with surface [kJ/mol]
 #define R       8.31446261815324e-3     // Ideal gas constant [kJ/mol]
@@ -92,7 +92,7 @@ double locenergy(struct Lattice *lattice,
 inline void icosahedron(double R0, double theta, double *x, double *y)
 {
     const double A = 0.03;
-    double pf = (1.0 + A*sin(6.0*theta));
+    double pf = (1.0 + A*cos(6.0*theta));
     double r;
     
     r = sqrt(R0*R0*pf*pf);
